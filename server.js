@@ -30,13 +30,14 @@ app.use(express.static(path.join(__dirname,'just-do-it/build')));
 
 app.post('/add', function(요청,응답){
   응답.send('전송완료');
-  console.log(요청.body.data);
-  console.log(요청.body.title);
   db.collection('post').insertOne({제목: 요청.body.title, 날짜: 요청.body.date}, function(){console.log('저장완료')})
 })
 
-app.get('/', function(요청, 응답){
-  응답.sendFile(path.join(__dirname,"just-do-it/build/index.html" ))
+app.get('/list', function(요청, 응답){
+  db.collection('post').find().toArray(function(에러, 결과){
+    console.log(결과)
+    응답.send(결과)
+  });
 })
 
 
