@@ -3,6 +3,8 @@ const path = require("path");
 const app = express();
 const MongoClient = require("mongodb").MongoClient;
 const bodyParser = require("body-parser");
+const methodOverride = require('method-override')
+app.use(methodOverride('_method'))
 app.use(bodyParser.urlencoded({ extended: true }));
 
 MongoClient.connect(
@@ -29,19 +31,30 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, "just-do-it/build")));
 
-app.post('/add', function (요청, 응답) {
-  db.collection('counter').findOne({name : '게시물갯수'}, function(에러, 결과){
-    var 총게시물갯수 = 결과.totalPost
+app.post("/add", function (요청, 응답) {
+  db.collection("counter").findOne(
+    { name: "게시물갯수" },
+    function (에러, 결과) {
+      var 총게시물갯수 = 결과.totalPost;
 
-    db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목 : 요청.body.title, 날짜 : 요청.body.date }, function (에러, 결과) {
-      db.collection('counter').updateOne({name:'게시물갯수'},{ $inc: {totalPost:1} },function(에러, 결과){
-	if(에러){return console.log(에러)}
-        응답.send('전송완료');
-      })
-    })
-
-  })
-})
+      db.collection("post").insertOne(
+        { _id: 총게시물갯수 + 1, 제목: 요청.body.title, 날짜: 요청.body.date },
+        function (에러, 결과) {
+          db.collection("counter").updateOne(
+            { name: "게시물갯수" },
+            { $inc: { totalPost: 1 } },
+            function (에러, 결과) {
+              if (에러) {
+                return console.log(에러);
+              }
+              응답.send("전송완료");
+            }
+          );
+        }
+      );
+    }
+  );
+});
 
 app.get("/list", function (요청, 응답) {
   db.collection("post")
@@ -68,7 +81,6 @@ app.delete("/list", function (요청, 응답) {
 
     if (에러) {
       console.log(에러);
-
     }
   });
 });
@@ -76,3 +88,15 @@ app.delete("/list", function (요청, 응답) {
 app.get("*", function (요청, 응답) {
   응답.sendFile(path.join(__dirname, "just-do-it/build/index.html"));
 });
+
+app.put("/edit", function (요청, 응답) {
+  console.log(요청.body)
+  db.collection("post").updateOne(
+    { _id: parseInt(요청.body.id) },
+    { $set: { 제목: 요청.body.modalTitle, 날짜: 요청.body.modalDate } },
+    function () {
+      console.log("수정완료");
+    }
+  );
+});
+
